@@ -34,3 +34,14 @@ Medium
 
 ## Evidence
 Screenshots of the detected events and the active agent are included in this folder.
+## Screenshots
+
+### Agent Active
+![Agent Active](./agent-active.png)
+
+### EventID 4720 — User Created
+![EventID 4720](./evidence-4720.png)
+
+### EventID 4732 — Added to Administrators
+![EventID 4732](./evidence-4732.png)
+
