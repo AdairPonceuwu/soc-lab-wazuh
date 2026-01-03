@@ -1,1 +1,8 @@
 
+# Case 01
+agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4720
+agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4732
+
+# Useful Windows events
+agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4625  # Failed logon
+agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4624  # Successful logon
