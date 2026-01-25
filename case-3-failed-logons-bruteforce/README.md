@@ -43,7 +43,7 @@ Screenshots showing multiple failed logons and the subsequent successful authent
 ![EventID 4625 Timeline](./evidence-4625-timeline.png)
 
 ### Failed Logon — EventID 4625 (Detail)
-![EventID 4625 Detail](./evidence-4625-detail.png)
+![EventID 4625 Detail](./evidence-4625.png)
 
 ### Successful Logon — EventID 4624
-![EventID 4624](./evidence-4624-success.png)
+![EventID 4624](./evidence-4624.png)
