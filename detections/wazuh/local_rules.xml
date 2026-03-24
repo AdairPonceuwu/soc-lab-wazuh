@@ -1,0 +1,108 @@
+<!--
+  File: local_rules.xml
+  Purpose: Custom Wazuh detection rules for the SOC lab
+  Notes:
+  - Keep the placeholder rule.
+  - Add new validated rules below by use case.
+  - Tested conceptually against native Windows Security Event Logs collected by Wazuh.
+-->
+
+<group name="local,">
+
+  <rule id="100000" level="0">
+    <description>Local rules placeholder (do not remove)</description>
+  </rule>
+
+  <!-- ========================================================= -->
+  <!-- Case 04 - Suspicious PowerShell Execution (Validated)     -->
+  <!-- Technique: T1059.001 - PowerShell                         -->
+  <!-- Event ID: 4688                                            -->
+  <!-- Notes: Uses win.system.message because the parent rule    -->
+  <!-- for 4688 relies on no_full_log in this lab setup.         -->
+  <!-- ========================================================= -->
+
+  <rule id="110404" level="10">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">4688</field>
+    <field name="win.system.message">powershell.exe</field>
+    <field name="win.system.message">-NoProfile</field>
+    <field name="win.system.message">-ExecutionPolicy</field>
+    <field name="win.system.message">Bypass</field>
+
+    <description>Suspicious PowerShell execution (NoProfile + ExecutionPolicy Bypass) via EventID 4688</description>
+
+    <mitre>
+      <id>T1059.001</id>
+    </mitre>
+
+    <group>windows,powershell,execution,attack,lolbins,local</group>
+  </rule>
+
+  <!-- ========================================================= -->
+  <!-- Case 01 - Local User Creation / Admin Group Assignment    -->
+  <!-- Current status: Documented detection case based on native -->
+  <!-- Windows Security Events. Add validated custom rules here  -->
+  <!-- if you decide to alert directly on these events.          -->
+  <!-- Relevant Event IDs: 4720, 4732                            -->
+  <!-- ATT&CK: T1136.001 / T1098                                 -->
+  <!-- ========================================================= -->
+
+  <!--
+  <rule id="110401" level="8">
+    <if_sid>INSERT_PARENT_RULE_ID</if_sid>
+    <field name="win.system.eventID">4720</field>
+    <description>Local user account created on Windows endpoint</description>
+    <mitre>
+      <id>T1136.001</id>
+    </mitre>
+    <group>windows,account_creation,persistence,local</group>
+  </rule>
+
+  <rule id="110402" level="9">
+    <if_sid>INSERT_PARENT_RULE_ID</if_sid>
+    <field name="win.system.eventID">4732</field>
+    <description>User added to security-enabled local group on Windows endpoint</description>
+    <mitre>
+      <id>T1098</id>
+    </mitre>
+    <group>windows,group_modification,privilege_escalation,local</group>
+  </rule>
+  -->
+
+  <!-- ========================================================= -->
+  <!-- Case 02 - Scheduled Task Persistence                      -->
+  <!-- Current status: Documented detection case based on        -->
+  <!-- Windows Security Event ID 4698.                           -->
+  <!-- ATT&CK: T1053.005                                         -->
+  <!-- ========================================================= -->
+
+  <!--
+  <rule id="110403" level="8">
+    <if_sid>INSERT_PARENT_RULE_ID</if_sid>
+    <field name="win.system.eventID">4698</field>
+    <description>Scheduled task created on Windows endpoint</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+    <group>windows,scheduled_task,persistence,local</group>
+  </rule>
+  -->
+
+  <!-- ========================================================= -->
+  <!-- Case 03 - Failed Logons / Brute Force                     -->
+  <!-- Current status: Investigated through hunting and analyst  -->
+  <!-- workflow. Consider implementing correlation externally or -->
+  <!-- with a more advanced thresholding strategy.               -->
+  <!-- Relevant Event IDs: 4625, 4624                            -->
+  <!-- ATT&CK: T1110                                             -->
+  <!-- ========================================================= -->
+
+  <!--
+    Example idea:
+    - Alert on repeated 4625 failures over time
+    - Raise severity if followed by 4624 for the same account
+    - This is better handled with correlation / threshold logic
+      once your lab includes validated tuning criteria
+  -->
+
+</group>
