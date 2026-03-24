@@ -1,272 +1,254 @@
-# Windows Authentication and Persistence Queries
+# Incident Report Template
 
-This file centralizes the main Wazuh / Discover queries used across the SOC lab.
+Use this template to document detection cases and investigations in a consistent SOC-style format.
 
-The goal is to make hunting and validation easier by keeping the most useful Windows event queries in one place instead of scattering them across individual case documents.
+This template is designed for:
 
----
-
-## Notes
-
-- These queries are based on **native Windows Security Event Logs**
-- Telemetry is collected through the **Wazuh Agent via Windows Event Channel**
-- Replace hostnames, usernames, or task names as needed for your own lab
-- Some fields may vary slightly depending on parsing and Wazuh version
+- lab validation
+- portfolio documentation
+- analyst workflow practice
+- incident triage writeups
 
 ---
 
-# 1. Host Scoping
+# Incident Report — [Case Title]
 
-Use these filters to scope queries to a specific endpoint before adding event conditions.
+## 1. Executive Summary
 
-## Specific Host
+Provide a short summary of what was detected, why it matters, and what the analyst concluded.
+
+**Example:**  
+A suspicious PowerShell execution was detected on the Windows endpoint `WIN10-ENDPOINT`. The command used `-NoProfile` and `-ExecutionPolicy Bypass`, which may indicate policy bypass or malicious execution. The activity was confirmed in Wazuh and reviewed as a high-priority event requiring analyst investigation.
+
+---
+
+## 2. Detection Details
+
+- **Case Name:**  
+- **Detection Source:** Wazuh
+- **Detection Type:**  
+- **Rule ID (if applicable):**  
+- **Severity:**  
+- **Date / Time Detected:**  
+- **Hostname:**  
+- **Endpoint IP:**  
+- **User / Account Involved:**  
+- **Operating System:** Windows 10 Pro
+
+---
+
+## 3. ATT&CK Mapping
+
+| Tactic | Technique | ID |
+|--------|-----------|----|
+|        |           |    |
+
+Add multiple rows if needed.
+
+---
+
+## 4. Observed Activity
+
+Describe exactly what activity was observed.
+
+**Suggested points to include:**
+
+- what event or behavior triggered the detection
+- what command, logon, account change, or persistence action occurred
+- whether the activity was isolated or part of a sequence
+- whether there was follow-on activity
+
+---
+
+## 5. Relevant Telemetry
+
+Document the logs and fields used in the investigation.
+
+- **Log source:**  
+- **Collection method:**  
+- **Relevant Event IDs:**  
+- **Important fields reviewed:**  
+
+**Example fields:**
+
+- `TargetUserName`
+- `SubjectUserName`
+- `IpAddress`
+- `TaskName`
+- `win.system.message`
+- `Timestamp`
+
+---
+
+## 6. Queries Used
+
+Include the main queries used during hunting or validation.
 
 ```text
-agent.name:"WIN10-ENDPOINT"
+# Query 1
 ```
 
-## Specific Host + IP
+```text
+# Query 2
+```
 
 ```text
-agent.name:"WIN10-ENDPOINT" AND agent.ip:"192.168.56.103"
+# Query 3
 ```
 
 ---
 
-# 2. Account Creation and Privilege Changes
+## 7. Investigation Timeline
 
-These queries support investigation of local user creation and privileged group membership changes.
+Document the sequence of events or analyst steps.
 
-## Event ID 4720 — Local User Account Created
+| Time | Event / Action | Notes |
+|------|----------------|-------|
+|      |                |       |
 
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4720
-```
+This can include:
 
-## Event ID 4732 — User Added to Security-Enabled Local Group
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4732
-```
-
-## User Creation + Group Assignment
-
-```text
-agent.name:"WIN10-ENDPOINT" AND (data.win.system.eventID:4720 OR data.win.system.eventID:4732)
-```
-
-## Search by Target Username
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.eventdata.TargetUserName:"testuser"
-```
-
-## Search by Subject Username
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.eventdata.SubjectUserName:"Administrator"
-```
-
-### Use Case
-
-Helpful for:
-
-- validating account creation in Case 01
-- confirming who performed the action
-- investigating whether the created account was later modified or privileged
+- activity generation in the lab
+- event validation in Wazuh
+- rule troubleshooting
+- alert confirmation
+- remediation steps
 
 ---
 
-# 3. Scheduled Task Persistence
+## 8. Evidence
 
-These queries support detection and review of scheduled task creation.
+Document the supporting evidence collected during the investigation.
 
-## Event ID 4698 — Scheduled Task Created
+**Suggested evidence:**
 
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4698
-```
+- screenshots of alerts
+- event detail screenshots
+- query results
+- endpoint command output
+- rule validation output
 
-## Search by Task Name
+### Evidence Files
 
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4698 AND data.win.eventdata.TaskName:"WinPersistTest"
-```
-
-## Search for Scheduled Task Events by Creator
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4698 AND data.win.eventdata.SubjectUserName:"Administrator"
-```
-
-### Use Case
-
-Helpful for:
-
-- validating Case 02
-- checking which account created the task
-- reviewing whether the task name appears benign or suspicious
+- `./evidence/file-1.png`
+- `./evidence/file-2.png`
 
 ---
 
-# 4. Failed Logons / Brute Force
+## 9. Analyst Assessment
 
-These queries support authentication hunting and brute force investigation.
+Provide the analyst’s judgment of the event.
 
-## Event ID 4625 — Failed Logon
+**Suggested questions to answer:**
 
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4625
-```
+- Does the activity look legitimate or suspicious?
+- Is the user or account expected?
+- Is the timing normal or abnormal?
+- Is the behavior consistent with the environment?
+- Does this match known attacker behavior?
+- Is more investigation required?
 
-## Event ID 4624 — Successful Logon
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4624
-```
-
-## Failed + Successful Logons Together
-
-```text
-agent.name:"WIN10-ENDPOINT" AND (data.win.system.eventID:4625 OR data.win.system.eventID:4624)
-```
-
-## Failed Logons for a Specific User
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4625 AND data.win.eventdata.TargetUserName:"User1"
-```
-
-## Successful Logons for a Specific User
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4624 AND data.win.eventdata.TargetUserName:"User1"
-```
-
-## Failed Logons from a Specific Source IP
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4625 AND data.win.eventdata.IpAddress:"192.168.56.1"
-```
-
-## Authentication Sequence for a User
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.eventdata.TargetUserName:"User1" AND (data.win.system.eventID:4625 OR data.win.system.eventID:4624)
-```
-
-### Use Case
-
-Helpful for:
-
-- validating Case 03
-- identifying repeated failed attempts
-- checking whether a success followed the failures
-- scoping to a user, IP, or workstation
+**Assessment:**  
+Write your conclusion here.
 
 ---
 
-# 5. PowerShell / Process Creation
+## 10. Severity Rationale
 
-These queries support suspicious PowerShell process creation hunting using native Windows logs.
+Explain why the case was rated at its assigned severity.
 
-## Event ID 4688 — Process Creation
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4688
-```
-
-## Event ID 4688 + PowerShell
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4688 AND data.win.system.message:"powershell.exe"
-```
-
-## PowerShell with NoProfile
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4688 AND data.win.system.message:"powershell.exe" AND data.win.system.message:"-NoProfile"
-```
-
-## PowerShell with ExecutionPolicy Bypass
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4688 AND data.win.system.message:"powershell.exe" AND data.win.system.message:"-ExecutionPolicy" AND data.win.system.message:"Bypass"
-```
-
-## Full Suspicious PowerShell Pattern
-
-```text
-agent.name:"WIN10-ENDPOINT" AND data.win.system.eventID:4688 AND data.win.system.message:"powershell.exe" AND data.win.system.message:"-NoProfile" AND data.win.system.message:"-ExecutionPolicy" AND data.win.system.message:"Bypass"
-```
-
-### Use Case
-
-Helpful for:
-
-- validating Case 04
-- confirming suspicious PowerShell execution
-- checking whether the rendered message contains the expected indicators
-- supporting custom rule development when structured fields are limited
+**Example:**  
+Severity was rated as **High** because repeated failed logons were followed by a successful authentication, increasing the likelihood of credential compromise and the need for immediate review.
 
 ---
 
-# 6. Cross-Case Investigation Queries
+## 11. False Positives
 
-These queries are useful when reviewing related activity across multiple cases.
+List realistic benign explanations.
 
-## Account Creation + Successful Logon
+**Example ideas:**
 
-```text
-agent.name:"WIN10-ENDPOINT" AND (data.win.system.eventID:4720 OR data.win.system.eventID:4624)
-```
-
-## Account Creation + Group Membership Change + Successful Logon
-
-```text
-agent.name:"WIN10-ENDPOINT" AND (data.win.system.eventID:4720 OR data.win.system.eventID:4732 OR data.win.system.eventID:4624)
-```
-
-## Failed Logons + Successful Logon + PowerShell
-
-```text
-agent.name:"WIN10-ENDPOINT" AND (data.win.system.eventID:4625 OR data.win.system.eventID:4624 OR data.win.system.eventID:4688)
-```
-
-## Privilege Changes + Scheduled Tasks
-
-```text
-agent.name:"WIN10-ENDPOINT" AND (data.win.system.eventID:4732 OR data.win.system.eventID:4698)
-```
-
-### Use Case
-
-Helpful for:
-
-- exploring multi-step attack scenarios
-- building future correlation cases
-- reviewing activity before writing a higher-confidence detection
+- administrative maintenance
+- user password mistakes
+- approved automation
+- software installation activity
+- lab testing
 
 ---
 
-# 7. Investigation Tips
+## 12. Tuning Recommendations
 
-When using these queries, it is usually helpful to:
+Document how the detection could be improved.
 
-- start with a single host filter
-- validate that the expected event exists before refining further
-- pivot by username, task name, source IP, or time window
-- compare failed and successful activity close together in time
-- review adjacent events around suspicious PowerShell or persistence activity
+**Example ideas:**
+
+- allowlist known users or task names
+- add thresholding logic
+- correlate with follow-on events
+- reduce noise from service accounts
+- increase severity when combined with persistence or remote access
 
 ---
 
-# 8. Planned Query Expansion
+## 13. Containment / Remediation
 
-Future versions of this file may include:
+Describe what action was taken or what should be done next.
 
-- RDP-focused logon queries
-- service creation queries
-- remote administration activity
-- Linux hunting queries
-- Sysmon-based comparisons when available
+**Examples:**
+
+- disable the account
+- delete the scheduled task
+- isolate the host
+- reset credentials
+- review related activity on nearby systems
+- escalate to incident response
+
+---
+
+## 14. Verification
+
+Document how remediation or validation was confirmed.
+
+**Example:**  
+The suspicious scheduled task was removed and verified using:
+
+```text
+schtasks /query /tn "WinPersistTest"
+```
+
+---
+
+## 15. Lessons Learned
+
+Capture what this case taught you.
+
+**Example ideas:**
+
+- validating telemetry first saves time
+- native Windows logs still support strong detections
+- stable rules matter more than overly complex ones
+- some Wazuh detections require message-based matching because of parsing limitations
+
+---
+
+## 16. Reproduction Status
+
+- [ ] Reproducible in current lab
+- [ ] Detection validated
+- [ ] Query validated
+- [ ] Severity documented
+- [ ] Evidence attached
+- [ ] Remediation or verification documented
+
+---
+
+## 17. Related Files
+
+Link related project files here.
+
+**Example:**
+
+- [Case README](../case-01/README.md)
+- [Rule File](../detections/wazuh/local_rules.xml)
+- [Query File](../queries/windows-auth-and-persistence.md)
+- [ATT&CK Matrix](../docs/ATTACK-Coverage-Matrix.md)
